@@ -1,2 +1,2 @@
-# shen-presentation
-Shen presentation to be presented 07/07/2016
+# Shen - Lisp and Haskell together
+Shen presentation planned for 07/07/2016
