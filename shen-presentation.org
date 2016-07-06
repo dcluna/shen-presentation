@@ -1,0 +1,243 @@
+#+OPTIONS: reveal_center:t reveal_progress:t reveal_history:t reveal_control:t
+#+OPTIONS: reveal_mathjax:t reveal_rolling_links:t reveal_keyboard:t reveal_overview:t num:nil
+#+OPTIONS: reveal_width:1200 reveal_height:800
+#+OPTIONS: toc:nil
+#+REVEAL_MARGIN: 0.0
+#+REVEAL_MIN_SCALE: 0.1
+#+REVEAL_MAX_SCALE: 1.0
+#+REVEAL_TRANS: none
+#+REVEAL_THEME: night
+#+REVEAL_HLEVEL: 1
+#+REVEAL_DEFAULT_FRAG_STYLE: roll-in
+#+REVEAL_ROOT: file:///home/dancluna/bin/reveal.js-3.3.0
+
+#+TITLE: Shen - Lisp and Haskell together
+* Language features
+#+ATTR_REVEAL: :frag (t)
+- It's a [[https://en.wikipedia.org/wiki/Common_Lisp#The_function_namespace][Lisp-2]]
+- [[http://www.shenlanguage.org/learn-shen/functions/functions_pattern_matching.html][Pattern matching]]
+- Haskell-style type system
+- Actually, it's more powerful than Haskell's (Turing-complete type system)
+  #+BEGIN_NOTES
+  Aditya Siram, the guy who ported Shen to Emacs, said something like "this is
+  Lisp, not Haskell. If you want to launch nukes while compiling, you're free to
+  do so!"
+  #+END_NOTES
+- Macros
+  #+BEGIN_NOTES
+  Better than usual Lisp macros, because they take full advantage of the term
+  rewriting system that Shen uses. More on that later.
+  #+END_NOTES
+- Embedded Backtracking
+  #+BEGIN_NOTES
+  Elaborate on this. WTF does 'backtracking' mean without context?
+  #+END_NOTES
+- Embedded compiler-compiler
+- Embedded Prolog
+* Data types
+#+ATTR_REVEAL: :frag (t)
+The basic datatypes and types of Shen are
+
+- symbols
+#+BEGIN_SRC shen
+a \\ => a : symbol
+#+END_SRC
+- strings
+#+BEGIN_SRC shen
+"hello world" \\ => "hello world" : string
+ (@s "10" " green" " bottles") \\ => "10 green bottles" : string
+#+END_SRC
+- booleans
+#+BEGIN_SRC shen
+(= 4 5) \\ => false : boolean
+#+END_SRC
+- numbers
+#+BEGIN_SRC shen
+(* 2.3 2) \\ => 4.6 : number
+#+END_SRC
+- lists
+#+BEGIN_SRC shen
+[1 2 3] \\ => [1 2 3] : (list number)
+#+END_SRC
+- tuples
+#+BEGIN_SRC shen
+(@p 1 2 a) \\ => (@p 1 (@p 2 a)) : (number * (number * symbol))
+#+END_SRC
+- vectors
+#+BEGIN_SRC shen
+(@v 1 2 3 <>) \\ => <1 2 3> : (vector number)
+#+END_SRC
+- [[https://en.wikipedia.org/wiki/Lazy_evaluation][lazy objects]]
+#+BEGIN_SRC shen
+(set thunk (freeze (* 7 8))) \\ => #<FUNCTION :LAMBDA NIL (multiply 7 8)> : (lazy number)
+(value thunk) \\ => #<FUNCTION :LAMBDA NIL (multiply 7 8)> : (lazy number)
+(thaw (value thunk)) \\ => 56
+#+END_SRC
+- abstractions (AKA [[https://en.wikipedia.org/wiki/Currying][curried functions]])
+#+BEGIN_SRC shen
+  (* 7) \\ => #<FUNCTION :LAMBDA (#:Y18379) (multiply #:Y18378 #:Y18379)> : (number --> number)
+#+END_SRC
+
+- Shen's type system is based on the [[https://en.wikipedia.org/wiki/Sequent_calculus][sequent calculus]]. You can find a good
+  primer [[http://logitext.mit.edu/logitext.fcgi/tutorial][here]].
+* Pattern matching
+#+ATTR_REVEAL: :frag (t)
+#+BEGIN_SRC shen
+(define butlast
+  [] -> []
+  [_] -> []
+  [X | Y] -> [X | (butlast Y)])
+#+END_SRC
+
+#+BEGIN_SRC shen
+(define tuple->list
+       \\ recurse through a tuple converting into a list 
+       (@p X Y) -> [X | (tuple->list Y)]
+       X -> [X])
+
+(tuple->list (@p 1 2 3)) \\ => [1 2 3]
+#+END_SRC
+* Functions
+** Dynamic, everything-goes version
+#+ATTR_REVEAL: :frag (t)
+#+BEGIN_SRC shen
+(define fp/map
+  F [] -> []
+  F [X | Xs] -> [(F X) | (map F Xs)])
+#+END_SRC
+
+** Type-safe version
+#+ATTR_REVEAL: :frag (t)
+#+BEGIN_SRC shen
+  \* this command turns the typechecker on/off *\
+  (tc +)
+
+  (define fp/foldl
+    {(A --> X --> A) --> A --> (list X) --> A}
+    F Acc [] -> Acc
+    F Acc [X | Xs] -> (fp/foldl F (F Acc X) Xs))
+#+END_SRC
+
+#+ATTR_REVEAL: :frag (t)
+- Notice the Haskell-ish flavor of the language.
+
+** Lambdas!
+#+ATTR_REVEAL: :frag (t)
+#+BEGIN_SRC shen
+((/. X Y (+ X Y)) 1 2) \\ => 3
+#+END_SRC
+
+** [[https://en.wikipedia.org/wiki/Higher-order_function][HOF]]s
+#+ATTR_REVEAL: :frag (t)
+#+BEGIN_SRC shen
+  (define newtons-method
+    N -> (let Guess (/ N 2.0)
+           (run-newtons-method N (average Guess (/ N Guess)) Guess)))
+
+  \* "hardcoded" method *\
+
+  (define run-newtons-method
+    _ Better_Guess Guess -> Better_Guess where (close-enough? Better_Guess Guess)
+    N Better_Guess _
+    -> (run-newtons-method N
+                           (average Better_Guess (/ N Better_Guess))
+                           Better_Guess))
+
+  \* higher-order converge function *\
+  (define converge
+    F X R -> (converge-help F (F X) X R))
+
+  (define converge-help
+    _ New Old R -> New where (R New Old)
+    F New _ R -> (converge-help F (F New) New R))
+
+  \* arbitrary newtons-method! *\
+  (define newtons-method-2
+    N -> (converge (/. M (average M (/ N M)))
+                   (/ N 2.0)
+                   (function close-enough?)))
+
+  \* helper functions *\
+  (define average
+    M N -> (/ (+ M N) 2.0))
+
+  (define close-enough?
+    Better_Guess Guess -> (< (abs (- Better_Guess Guess)) .001))
+
+  (define abs
+    N -> (* -1 N) where (< N 0)
+    N -> N)
+#+END_SRC
+
+* Macros
+#+ATTR_REVEAL: :frag (t)
+- They allow the programmer to use all the term rewriting goodness in his/her
+  own code
+
+#+BEGIN_SRC shen
+  (defmacro nor-macro
+    [nor X Y] -> [if [= X 0] [if [= Y 0] 1 0] 0])
+
+  (nor 0 1) \\ => 0
+  (nor 1 1) \\ => 0
+  (nor 0 0) \\ => 1
+
+  (macroexpand [ nor 0 0 ]) \\ => [if [= 0 0] [if [= 0 0] 1 0] 0]
+#+END_SRC
+
+- Much easier than [[https://en.wikipedia.org/wiki/Quasi-quotation][quasiquoting]], don't you think?
+- This is the time when I'd ask a Haskell programmer about how this compares to
+  [[https://en.wikipedia.org/wiki/Template_Haskell][Template Haskell]]
+- While writing this, I found this [[http://mstill.io/blog/At-the-Court-of-the-Nasqueron-Dwellers.html][cool blog post]] that explains a bit about why
+  Shen doesn't need all this weird stuff.
+  #+BEGIN_NOTES
+  +1 for the Algebraist reference
+  #+END_NOTES
+
+* Backtracking
+#+ATTR_REVEAL: :frag (t)
+#+BEGIN_QUOTE
+Backtracking is invoked in a Shen function f by using <- in place of ->. The
+effect is that the expression after the <- is returned only if it does not
+evaluate to the failure object (fail). If (fail) is returned; then the next rule
+in f is applied.
+#+END_QUOTE
+
+- I really can't describe it better than showing some beautiful code from [[http://www.shenlanguage.org/tbos.html][The Book of Shen]]
+
+#+BEGIN_SRC shen
+  (define depth
+    State F G? -> (depth-help [State] F G?))
+
+  (define depth-help
+    [State | _] _ G? -> State where (G? State)
+    [State | _] F G? <- (depth-help (F State) F G?)
+    [_ | States] F G? -> (depth-help States F G?)
+    _ _ _  -> (fail))
+
+  \* setting some auxiliary functions *\
+
+  \* we want the list of combinations of (2, 7, 9) that sum to 27 *\
+  (define goal?
+    S -> (= (sum S) 27))
+
+  \* state-expansion function *\
+  (define f
+    S -> (remove-if-no-good [[2 | S] [7 | S] [9 | S]]))
+
+  (define remove-if-no-good
+    Ss -> (remove-if (/. X (> (sum X) 27)) Ss))
+
+  (define remove-if
+    _ [] -> []
+    F [X | Y] -> (remove-if F Y) where (F X)
+    F [X | Y] -> [X | (remove-if F Y)])
+
+  (depth [] (function f) (function goal?)) \\ => [7 2 2 2 2 2 2 2 2 2 2]
+#+END_SRC
+
+#+BEGIN_QUOTE
+Certain beautiful programs, and this is one of them, are best left to contemplation.
+#+END_QUOTE
+
+* Embedded compiler-compiler (Shen-YACC)
