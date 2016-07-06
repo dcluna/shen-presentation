@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Shen - Type-safe logic-functional programming</title>
+<meta name="author" content="(Daniel Luna)"/>
+<style type="text/css">
+.underline { text-decoration: underline; }
+</style>
+<link rel="stylesheet" href="file:///home/dancluna/bin/reveal.js-3.3.0/css/reveal.css"/>
+
+<link rel="stylesheet" href="file:///home/dancluna/bin/reveal.js-3.3.0/css/theme/night.css" id="theme"/>
+
+
+<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+<script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = 'file:///home/dancluna/bin/reveal.js-3.3.0/css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+</script>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide"><h1 class="title">Shen - Type-safe logic-functional programming</h1>
+</section>
+<section>
+<section id="slide-orgheadline1">
+<h2 id="orgheadline1">Language features</h2>
+<ul>
+<li class="fragment roll-in"><p>
+It's a <a href="https://en.wikipedia.org/wiki/Common_Lisp#The_function_namespace">Lisp-2</a>
+</p>
+<aside class="notes">
+<p>
+Fancy term to mean that function/variable namespaces are separate
+</p>
+
+</aside></li>
+<li class="fragment roll-in"><a href="http://www.shenlanguage.org/learn-shen/functions/functions_pattern_matching.html">Pattern matching</a></li>
+<li class="fragment roll-in">Haskell-style type system</li>
+<li class="fragment roll-in"><p>
+Actually, it's more powerful than Haskell's (Turing-complete type system)
+</p>
+<blockquote  class="fragment roll-in">
+<p>
+"this is Lisp, not Haskell. If you want to launch nukes while compiling, you're free to do so!"
+</p>
+
+<p>
+&#x2013; Aditya Siram, Shen/Elisp creator
+</p>
+</blockquote></li>
+
+<li class="fragment roll-in"><p>
+Macros
+</p>
+<aside class="notes">
+<p>
+Better than usual Lisp macros, because they take full advantage of the term
+rewriting system that Shen uses. More on that later.
+</p>
+
+</aside></li>
+<li class="fragment roll-in"><p>
+Embedded Backtracking
+</p>
+<aside class="notes">
+<p>
+Elaborate on this. WTF does 'backtracking' mean without context?
+</p>
+
+</aside></li>
+<li class="fragment roll-in">Embedded compiler-compiler</li>
+<li class="fragment roll-in">Embedded Prolog</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-orgheadline13">
+<h2 id="orgheadline13">Data types</h2>
+<p class="fragment (t)">
+The basic datatypes and types of Shen are:
+</p>
+</section>
+<section id="slide-orgheadline2">
+<h3 id="orgheadline2">symbols</h3>
+<div class="org-src-container">
+
+<pre  class="fragment roll-in">a \\ =&gt; a : symbol
+</pre>
+</div>
+</section>
+<section id="slide-orgheadline3">
+<h3 id="orgheadline3">strings</h3>
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #CC5542;">"hello world"</span> \\ =&gt; <span style="color: #CC5542;">"hello world"</span> : string
+<span style="color: #bdbdb3;">(</span><span style="color: #bdbdb3; font-weight: bold;">@s</span> <span style="color: #CC5542;">"10"</span> <span style="color: #CC5542;">" green"</span> <span style="color: #CC5542;">" bottles"</span><span style="color: #bdbdb3;">)</span> \\ =&gt; <span style="color: #CC5542;">"10 green bottles"</span> : string
+</pre>
+</div>
+</section>
+<section id="slide-orgheadline4">
+<h3 id="orgheadline4">booleans</h3>
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #bdbdb3;">(</span>= <span style="color: #6a7550;">4</span> <span style="color: #6a7550;">5</span><span style="color: #bdbdb3;">)</span> \\ =&gt; false : boolean
+</pre>
+</div>
+</section>
+<section id="slide-orgheadline5">
+<h3 id="orgheadline5">numbers</h3>
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #bdbdb3;">(</span>* <span style="color: #6a7550;">2</span>.<span style="color: #6a7550;">3</span> <span style="color: #6a7550;">2</span><span style="color: #bdbdb3;">)</span> \\ =&gt; <span style="color: #6a7550;">4</span>.<span style="color: #6a7550;">6</span> : number
+</pre>
+</div>
+</section>
+<section id="slide-orgheadline6">
+<h3 id="orgheadline6">lists</h3>
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #bdbdb3;">[</span><span style="color: #6a7550;">1</span> <span style="color: #6a7550;">2</span> <span style="color: #6a7550;">3</span><span style="color: #bdbdb3;">]</span> \\ =&gt; <span style="color: #bdbdb3;">[</span><span style="color: #6a7550;">1</span> <span style="color: #6a7550;">2</span> <span style="color: #6a7550;">3</span><span style="color: #bdbdb3;">]</span> : <span style="color: #bdbdb3;">(</span><span style="color: #bdbdb3; font-weight: bold;">list</span> number<span style="color: #bdbdb3;">)</span>
+</pre>
+</div>
+</section>
+<section id="slide-orgheadline7">
+<h3 id="orgheadline7">tuples</h3>
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #bdbdb3;">(</span><span style="color: #bdbdb3; font-weight: bold;">@p</span> <span style="color: #6a7550;">1</span> <span style="color: #6a7550;">2</span> a<span style="color: #bdbdb3;">)</span> \\ =&gt; <span style="color: #bdbdb3;">(</span><span style="color: #bdbdb3; font-weight: bold;">@p</span> <span style="color: #6a7550;">1</span> <span style="color: #6a9550;">(</span><span style="color: #bdbdb3; font-weight: bold;">@p</span> <span style="color: #6a7550;">2</span> a<span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span> : <span style="color: #bdbdb3;">(</span>number * <span style="color: #6a9550;">(</span>number * symbol<span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span>
+</pre>
+</div>
+</section>
+<section id="slide-orgheadline8">
+<h3 id="orgheadline8">vectors</h3>
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #bdbdb3;">(</span><span style="color: #bdbdb3; font-weight: bold;">@v</span> <span style="color: #6a7550;">1</span> <span style="color: #6a7550;">2</span> <span style="color: #6a7550;">3</span> &lt;&gt;<span style="color: #bdbdb3;">)</span> \\ =&gt; &lt;1 <span style="color: #6a7550;">2</span> <span style="color: #6a7550;">3&gt;</span> : <span style="color: #bdbdb3;">(</span><span style="color: #bdbdb3; font-weight: bold;">vector</span> number<span style="color: #bdbdb3;">)</span>
+</pre>
+</div>
+</section>
+<section id="slide-orgheadline9">
+<h3 id="orgheadline9"><a href="https://en.wikipedia.org/wiki/Lazy_evaluation">lazy objects</a></h3>
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #bdbdb3;">(</span><span style="color: #bdbdb3; font-weight: bold;">set</span> thunk <span style="color: #6a9550;">(</span><span style="color: #7d7c61; font-weight: bold;">freeze</span> <span style="color: #baba36;">(</span>* <span style="color: #6a7550;">7</span> <span style="color: #6a7550;">8</span><span style="color: #baba36;">)</span><span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span> \\ =&gt; #&lt;FUNCTION :<span style="color: #fb8512;">LAMBDA</span> <span style="color: #fb8512;">NIL</span> <span style="color: #bdbdb3;">(</span>multiply <span style="color: #6a7550;">7</span> <span style="color: #6a7550;">8</span><span style="color: #bdbdb3;">)</span>&gt; : <span style="color: #bdbdb3;">(</span>lazy number<span style="color: #bdbdb3;">)</span>
+<span style="color: #bdbdb3;">(</span><span style="color: #bdbdb3; font-weight: bold;">value</span> thunk<span style="color: #bdbdb3;">)</span> \\ =&gt; #&lt;FUNCTION :<span style="color: #fb8512;">LAMBDA</span> <span style="color: #fb8512;">NIL</span> <span style="color: #bdbdb3;">(</span>multiply <span style="color: #6a7550;">7</span> <span style="color: #6a7550;">8</span><span style="color: #bdbdb3;">)</span>&gt; : <span style="color: #bdbdb3;">(</span>lazy number<span style="color: #bdbdb3;">)</span>
+<span style="color: #bdbdb3;">(</span><span style="color: #bdbdb3; font-weight: bold;">thaw</span> <span style="color: #6a9550;">(</span><span style="color: #bdbdb3; font-weight: bold;">value</span> thunk<span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span> \\ =&gt; <span style="color: #6a7550;">56</span>
+</pre>
+</div>
+<aside class="notes">
+<p>
+Streams, promises, futures and the like come from this. Easy-peasy.
+</p>
+
+</aside>
+</section>
+<section id="slide-orgheadline10">
+<h3 id="orgheadline10">abstractions (AKA <a href="https://en.wikipedia.org/wiki/Currying">curried functions</a>)</h3>
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #bdbdb3;">(</span>* <span style="color: #6a7550;">7</span><span style="color: #bdbdb3;">)</span> \\ =&gt; #&lt;FUNCTION :<span style="color: #fb8512;">LAMBDA</span> <span style="color: #bdbdb3;">(</span>#:<span style="color: #fb8512;">Y18379</span><span style="color: #bdbdb3;">)</span> <span style="color: #bdbdb3;">(</span>multiply #:<span style="color: #fb8512;">Y18378</span> #:<span style="color: #fb8512;">Y18379</span><span style="color: #bdbdb3;">)</span>&gt; : <span style="color: #bdbdb3;">(</span>number --&gt; number<span style="color: #bdbdb3;">)</span>
+</pre>
+</div>
+
+<p class="fragment">
+(Yes, Shen's gory details show here. Its default implementation is Common
+Lisp-based, and that's why you see these beautiful lambdas and <a href="http://www.catb.org/jargon/html/G/gensym.html" class="fragment">gensyms</a>)
+</p>
+</section>
+<section id="slide-orgheadline11">
+<h3 id="orgheadline11">custom data types</h3>
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">datatype</span> <span style="color: #528fd1;">rank</span>
+
+         if <span style="color: #6a9550;">(</span><span style="color: #bdbdb3; font-weight: bold;">element?</span> <span style="color: #fb8512;">X</span> <span style="color: #baba36;">[</span>ace <span style="color: #6a7550;">2</span> <span style="color: #6a7550;">3</span> <span style="color: #6a7550;">4</span> <span style="color: #6a7550;">5</span> <span style="color: #6a7550;">6</span> <span style="color: #6a7550;">7</span> <span style="color: #6a7550;">8</span> <span style="color: #6a7550;">9</span> <span style="color: #6a7550;">10</span> jack queen king<span style="color: #baba36;">]</span><span style="color: #6a9550;">)</span>
+         ________________________________________________________
+         <span style="color: #fb8512;">X</span> : rank;<span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">datatype</span> <span style="color: #528fd1;">suit</span>
+
+        if <span style="color: #6a9550;">(</span><span style="color: #bdbdb3; font-weight: bold;">element?</span> <span style="color: #fb8512;">Suit</span> <span style="color: #baba36;">[</span>spades hearts diamonds clubs<span style="color: #baba36;">]</span><span style="color: #6a9550;">)</span>
+        ________________________________________________
+        <span style="color: #fb8512;">Suit</span> : suit;<span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">datatype</span> <span style="color: #528fd1;">card</span>
+
+  <span style="color: #fb8512;">Rank</span> : rank; <span style="color: #fb8512;">Suit</span> : suit;
+  _________________________
+  <span style="color: #6a9550;">[</span><span style="color: #fb8512;">Rank</span> <span style="color: #fb8512;">Suit</span><span style="color: #6a9550;">]</span> : card;
+
+  <span style="color: #fb8512;">Rank</span> : rank, <span style="color: #fb8512;">Suit</span> : suit &gt;&gt; <span style="color: #fb8512;">P</span>;
+  _________________________________
+  <span style="color: #6a9550;">[</span><span style="color: #fb8512;">Rank</span> <span style="color: #fb8512;">Suit</span><span style="color: #6a9550;">]</span> : card &gt;&gt; <span style="color: #fb8512;">P</span>;<span style="color: #bdbdb3;">)</span>
+
+\* can also be defined with the short form: *\
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">datatype</span> <span style="color: #528fd1;">card</span>
+
+         <span style="color: #fb8512;">Rank</span> : rank; <span style="color: #fb8512;">Suit</span> : suit;
+         =========================
+         <span style="color: #6a9550;">[</span><span style="color: #fb8512;">Rank</span> <span style="color: #fb8512;">Suit</span><span style="color: #6a9550;">]</span> : card;<span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">(</span><span style="color: #bdbdb3; font-weight: bold;">tc</span> +<span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">[</span><span style="color: #6a7550;">5</span> spades<span style="color: #bdbdb3;">]</span> \\ =&gt; <span style="color: #bdbdb3;">[</span><span style="color: #6a7550;">5</span> spades<span style="color: #bdbdb3;">]</span> : card
+
+<span style="color: #bdbdb3;">[</span>king hearts<span style="color: #bdbdb3;">]</span> \\ =&gt; <span style="color: #bdbdb3;">[</span>king hearts<span style="color: #bdbdb3;">]</span> : <span style="color: #bdbdb3;">(</span><span style="color: #bdbdb3; font-weight: bold;">list</span> symbol<span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">[</span>king hearts<span style="color: #bdbdb3;">]</span> : card \\ =&gt; <span style="color: #bdbdb3;">[</span>king hearts<span style="color: #bdbdb3;">]</span> : card
+</pre>
+</div>
+</section>
+<section id="slide-orgheadline12">
+<h3 id="orgheadline12">Further details</h3>
+<ul>
+<li class="fragment roll-in">Shen's type system is based on the <a href="https://en.wikipedia.org/wiki/Sequent_calculus">sequent calculus</a>.</li>
+<li class="fragment roll-in">You can find a good primer on it <a href="http://logitext.mit.edu/logitext.fcgi/tutorial">here</a>.</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-orgheadline14">
+<h2 id="orgheadline14">Pattern matching</h2>
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">define</span> <span style="color: #9b55c3;">butlast</span>
+  <span style="color: #6a9550;">[]</span> -&gt; <span style="color: #6a9550;">[]</span>
+  <span style="color: #6a9550;">[</span>_<span style="color: #6a9550;">]</span> -&gt; <span style="color: #6a9550;">[]</span>
+  <span style="color: #6a9550;">[</span><span style="color: #fb8512;">X</span> | <span style="color: #fb8512;">Y</span><span style="color: #6a9550;">]</span> -&gt; <span style="color: #6a9550;">[</span><span style="color: #fb8512;">X</span> | <span style="color: #baba36;">(</span>butlast <span style="color: #fb8512;">Y</span><span style="color: #baba36;">)</span><span style="color: #6a9550;">]</span><span style="color: #bdbdb3;">)</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">define</span> <span style="color: #9b55c3;">tuple-&gt;list</span>
+       \\ recurse through a tuple converting into a list 
+       <span style="color: #6a9550;">(</span><span style="color: #bdbdb3; font-weight: bold;">@p</span> <span style="color: #fb8512;">X</span> <span style="color: #fb8512;">Y</span><span style="color: #6a9550;">)</span> -&gt; <span style="color: #6a9550;">[</span><span style="color: #fb8512;">X</span> | <span style="color: #baba36;">(</span>tuple-&gt;list <span style="color: #fb8512;">Y</span><span style="color: #baba36;">)</span><span style="color: #6a9550;">]</span>
+       <span style="color: #fb8512;">X</span> -&gt; <span style="color: #6a9550;">[</span><span style="color: #fb8512;">X</span><span style="color: #6a9550;">]</span><span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">(</span>tuple-&gt;list <span style="color: #6a9550;">(</span><span style="color: #bdbdb3; font-weight: bold;">@p</span> <span style="color: #6a7550;">1</span> <span style="color: #6a7550;">2</span> <span style="color: #6a7550;">3</span><span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span> \\ =&gt; <span style="color: #bdbdb3;">[</span><span style="color: #6a7550;">1</span> <span style="color: #6a7550;">2</span> <span style="color: #6a7550;">3</span><span style="color: #bdbdb3;">]</span>
+</pre>
+</div>
+
+<p class="fragment">
+Nothing surprising for Haskelliterati, other than the Lisp syntax.
+</p>
+
+<p class="fragment">
+But for Lispers, this saves a lot of <a href="http://clhs.lisp.se/Body/m_destru.htm" class="fragment">destructuring-bind</a> code.
+</p>
+</section>
+</section>
+<section>
+<section id="slide-orgheadline21">
+<h2 id="orgheadline21">Functions</h2>
+<div class="outline-text-2" id="text-orgheadline21">
+</div></section>
+<section id="slide-orgheadline15">
+<h3 id="orgheadline15">Dynamic, everything-goes version</h3>
+<div class="org-src-container">
+
+<pre  class="fragment (t)"><span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">define</span> <span style="color: #9b55c3;">fp/map</span>
+  <span style="color: #fb8512;">F</span> <span style="color: #6a9550;">[]</span> -&gt; <span style="color: #6a9550;">[]</span>
+  <span style="color: #fb8512;">F</span> <span style="color: #6a9550;">[</span><span style="color: #fb8512;">X</span> | <span style="color: #fb8512;">Xs</span><span style="color: #6a9550;">]</span> -&gt; <span style="color: #6a9550;">[</span><span style="color: #baba36;">(</span><span style="color: #fb8512;">F</span> <span style="color: #fb8512;">X</span><span style="color: #baba36;">)</span> | <span style="color: #baba36;">(</span><span style="color: #bdbdb3; font-weight: bold;">map</span> <span style="color: #fb8512;">F</span> <span style="color: #fb8512;">Xs</span><span style="color: #baba36;">)</span><span style="color: #6a9550;">]</span><span style="color: #bdbdb3;">)</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-orgheadline16">
+<h3 id="orgheadline16">Type-safe version</h3>
+<div class="org-src-container">
+
+<pre  class="fragment (t)">\* this command turns the typechecker on/off *\
+<span style="color: #bdbdb3;">(</span><span style="color: #bdbdb3; font-weight: bold;">tc</span> +<span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">define</span> <span style="color: #9b55c3;">fp/foldl</span>
+  <span style="color: #6a9550;">{</span><span style="color: #baba36;">(</span><span style="color: #fb8512;">A</span> --&gt; <span style="color: #fb8512;">X</span> --&gt; <span style="color: #fb8512;">A</span><span style="color: #baba36;">)</span> --&gt; <span style="color: #fb8512;">A</span> --&gt; <span style="color: #baba36;">(</span><span style="color: #bdbdb3; font-weight: bold;">list</span> <span style="color: #fb8512;">X</span><span style="color: #baba36;">)</span> --&gt; <span style="color: #fb8512;">A</span><span style="color: #6a9550;">}</span>
+  <span style="color: #fb8512;">F</span> <span style="color: #fb8512;">Acc</span> <span style="color: #6a9550;">[]</span> -&gt; <span style="color: #fb8512;">Acc</span>
+  <span style="color: #fb8512;">F</span> <span style="color: #fb8512;">Acc</span> <span style="color: #6a9550;">[</span><span style="color: #fb8512;">X</span> | <span style="color: #fb8512;">Xs</span><span style="color: #6a9550;">]</span> -&gt; <span style="color: #6a9550;">(</span>fp/foldl <span style="color: #fb8512;">F</span> <span style="color: #baba36;">(</span><span style="color: #fb8512;">F</span> <span style="color: #fb8512;">Acc</span> <span style="color: #fb8512;">X</span><span style="color: #baba36;">)</span> <span style="color: #fb8512;">Xs</span><span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span> \\ =&gt; fp/foldl : <span style="color: #bdbdb3;">(</span><span style="color: #6a9550;">(</span><span style="color: #fb8512;">A</span> --&gt; <span style="color: #baba36;">(</span><span style="color: #fb8512;">X</span> --&gt; <span style="color: #fb8512;">A</span><span style="color: #baba36;">)</span><span style="color: #6a9550;">)</span> --&gt; <span style="color: #6a9550;">(</span><span style="color: #fb8512;">A</span> --&gt; <span style="color: #baba36;">(</span><span style="color: #9b55c3;">(</span><span style="color: #bdbdb3; font-weight: bold;">list</span> <span style="color: #fb8512;">X</span><span style="color: #9b55c3;">)</span> --&gt; <span style="color: #fb8512;">A</span><span style="color: #baba36;">)</span><span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span>
+</pre>
+</div>
+
+<p class="fragment">
+Notice the Haskell-ish flavor of the language.
+</p>
+
+<p class="fragment">
+This WON'T compile without the type annotations!
+</p>
+
+</section>
+<section id="slide-orgheadline17">
+<h3 id="orgheadline17">Lambdas!</h3>
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #bdbdb3;">(</span><span style="color: #6a9550;">(</span><span style="color: #bdbdb3; font-weight: bold;">/</span>. <span style="color: #fb8512;">X</span> <span style="color: #fb8512;">Y</span> <span style="color: #baba36;">(</span><span style="color: #bdbdb3; font-weight: bold;">+</span> <span style="color: #fb8512;">X</span> <span style="color: #fb8512;">Y</span><span style="color: #baba36;">)</span><span style="color: #6a9550;">)</span> <span style="color: #6a7550;">1</span> <span style="color: #6a7550;">2</span><span style="color: #bdbdb3;">)</span> \\ =&gt; <span style="color: #6a7550;">3</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-orgheadline20">
+<h3 id="orgheadline20"><a href="https://en.wikipedia.org/wiki/Higher-order_function">Higher order functions</a></h3>
+<p class="fragment">
+We'll go through an implementation of the <a href="https://en.wikipedia.org/wiki/Newton%27s_method" class="fragment">Newton's method</a> to see how it can be
+improved w/ HOFs.
+</p>
+</section>
+<section id="slide-orgheadline18">
+<h4 id="orgheadline18">Hardcoded method</h4>
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">define</span> <span style="color: #9b55c3;">newtons-method</span>
+  <span style="color: #fb8512;">N</span> -&gt; <span style="color: #6a9550;">(</span><span style="color: #7d7c61; font-weight: bold;">let</span> <span style="color: #fb8512;">Guess</span> <span style="color: #baba36;">(</span><span style="color: #bdbdb3; font-weight: bold;">/</span> <span style="color: #fb8512;">N</span> <span style="color: #6a7550;">2</span>.<span style="color: #6a7550;">0</span><span style="color: #baba36;">)</span>
+         <span style="color: #baba36;">(</span>run-newtons-method <span style="color: #fb8512;">N</span> <span style="color: #9b55c3;">(</span><span style="color: #bdbdb3; font-weight: bold;">average</span> <span style="color: #fb8512;">Guess</span> <span style="color: #6abd50;">(</span><span style="color: #bdbdb3; font-weight: bold;">/</span> <span style="color: #fb8512;">N</span> <span style="color: #fb8512;">Guess</span><span style="color: #6abd50;">)</span><span style="color: #9b55c3;">)</span> <span style="color: #fb8512;">Guess</span><span style="color: #baba36;">)</span><span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span>
+
+\* <span style="color: #CC5542;">"hardcoded"</span> method *\
+
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">define</span> <span style="color: #9b55c3;">run-newtons-method</span>
+  _ <span style="color: #fb8512;">Better_Guess</span> <span style="color: #fb8512;">Guess</span> -&gt; <span style="color: #fb8512;">Better_Guess</span> where <span style="color: #6a9550;">(</span>close-enough? <span style="color: #fb8512;">Better_Guess</span> <span style="color: #fb8512;">Guess</span><span style="color: #6a9550;">)</span>
+  <span style="color: #fb8512;">N</span> <span style="color: #fb8512;">Better_Guess</span> _
+  -&gt; <span style="color: #6a9550;">(</span>run-newtons-method <span style="color: #fb8512;">N</span>
+                         <span style="color: #baba36;">(</span><span style="color: #bdbdb3; font-weight: bold;">average</span> <span style="color: #fb8512;">Better_Guess</span> <span style="color: #9b55c3;">(</span><span style="color: #bdbdb3; font-weight: bold;">/</span> <span style="color: #fb8512;">N</span> <span style="color: #fb8512;">Better_Guess</span><span style="color: #9b55c3;">)</span><span style="color: #baba36;">)</span>
+                         <span style="color: #fb8512;">Better_Guess</span><span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span>
+
+
+\* helper functions *\
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">define</span> <span style="color: #9b55c3;">average</span>
+  <span style="color: #fb8512;">M</span> <span style="color: #fb8512;">N</span> -&gt; <span style="color: #6a9550;">(</span><span style="color: #bdbdb3; font-weight: bold;">/</span> <span style="color: #baba36;">(</span><span style="color: #bdbdb3; font-weight: bold;">+</span> <span style="color: #fb8512;">M</span> <span style="color: #fb8512;">N</span><span style="color: #baba36;">)</span> <span style="color: #6a7550;">2</span>.<span style="color: #6a7550;">0</span><span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">define</span> <span style="color: #9b55c3;">close-enough?</span>
+  <span style="color: #fb8512;">Better_Guess</span> <span style="color: #fb8512;">Guess</span> -&gt; <span style="color: #6a9550;">(</span><span style="color: #bdbdb3; font-weight: bold;">&lt;</span> <span style="color: #baba36;">(</span>abs <span style="color: #9b55c3;">(</span><span style="color: #bdbdb3; font-weight: bold;">-</span> <span style="color: #fb8512;">Better_Guess</span> <span style="color: #fb8512;">Guess</span><span style="color: #9b55c3;">)</span><span style="color: #baba36;">)</span> .<span style="color: #6a7550;">001</span><span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">define</span> <span style="color: #9b55c3;">abs</span>
+  <span style="color: #fb8512;">N</span> -&gt; <span style="color: #6a9550;">(</span>* -1 <span style="color: #fb8512;">N</span><span style="color: #6a9550;">)</span> where <span style="color: #6a9550;">(</span><span style="color: #bdbdb3; font-weight: bold;">&lt;</span> <span style="color: #fb8512;">N</span> <span style="color: #6a7550;">0</span><span style="color: #6a9550;">)</span>
+  <span style="color: #fb8512;">N</span> -&gt; <span style="color: #fb8512;">N</span><span style="color: #bdbdb3;">)</span>
+</pre>
+</div>
+
+<p class="fragment">
+Other than the pattern-matching stuff, this doesn't look like much of an improvement.
+</p>
+</section>
+<section id="slide-orgheadline19">
+<h4 id="orgheadline19">Generic, arbitrary method</h4>
+<div class="org-src-container">
+
+<pre  class="fragment roll-in">\* higher-order converge function *\
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">define</span> <span style="color: #9b55c3;">converge</span>
+  <span style="color: #fb8512;">F</span> <span style="color: #fb8512;">X</span> <span style="color: #fb8512;">R</span> -&gt; <span style="color: #6a9550;">(</span>converge-help <span style="color: #fb8512;">F</span> <span style="color: #baba36;">(</span><span style="color: #fb8512;">F</span> <span style="color: #fb8512;">X</span><span style="color: #baba36;">)</span> <span style="color: #fb8512;">X</span> <span style="color: #fb8512;">R</span><span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">define</span> <span style="color: #9b55c3;">converge-help</span>
+  _ <span style="color: #fb8512;">New</span> <span style="color: #fb8512;">Old</span> <span style="color: #fb8512;">R</span> -&gt; <span style="color: #fb8512;">New</span> where <span style="color: #6a9550;">(</span><span style="color: #fb8512;">R</span> <span style="color: #fb8512;">New</span> <span style="color: #fb8512;">Old</span><span style="color: #6a9550;">)</span>
+  <span style="color: #fb8512;">F</span> <span style="color: #fb8512;">New</span> _ <span style="color: #fb8512;">R</span> -&gt; <span style="color: #6a9550;">(</span>converge-help <span style="color: #fb8512;">F</span> <span style="color: #baba36;">(</span><span style="color: #fb8512;">F</span> <span style="color: #fb8512;">New</span><span style="color: #baba36;">)</span> <span style="color: #fb8512;">New</span> <span style="color: #fb8512;">R</span><span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span>
+
+\* arbitrary newtons-method! *\
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">define</span> <span style="color: #9b55c3;">newtons-method-2</span>
+  <span style="color: #fb8512;">N</span> -&gt; <span style="color: #6a9550;">(</span>converge <span style="color: #baba36;">(</span><span style="color: #bdbdb3; font-weight: bold;">/</span>. <span style="color: #fb8512;">M</span> <span style="color: #9b55c3;">(</span><span style="color: #bdbdb3; font-weight: bold;">average</span> <span style="color: #fb8512;">M</span> <span style="color: #6abd50;">(</span><span style="color: #bdbdb3; font-weight: bold;">/</span> <span style="color: #fb8512;">N</span> <span style="color: #fb8512;">M</span><span style="color: #6abd50;">)</span><span style="color: #9b55c3;">)</span><span style="color: #baba36;">)</span>
+                 <span style="color: #baba36;">(</span><span style="color: #bdbdb3; font-weight: bold;">/</span> <span style="color: #fb8512;">N</span> <span style="color: #6a7550;">2</span>.<span style="color: #6a7550;">0</span><span style="color: #baba36;">)</span>
+                 <span style="color: #baba36;">(</span><span style="color: #bdbdb3; font-weight: bold;">function</span> close-enough?<span style="color: #baba36;">)</span><span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span>
+</pre>
+</div>
+
+
+<div class="figure">
+<p><a href="i-like-it.jpg" class="fragment"><img src="./i-like-it.jpg" alt="i-like-it.jpg" class="fragment" /></a>
+</p>
+</div>
+</section>
+</section>
+<section>
+<section id="slide-orgheadline22">
+<h2 id="orgheadline22">Macros</h2>
+<ul class="fragment">
+<li>They allow the programmer to use all the term rewriting goodness in his/her
+own code</li>
+
+</ul>
+
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">defmacro</span> <span style="color: #9b55c3;">nor-macro</span>
+  <span style="color: #6a9550;">[</span>nor <span style="color: #fb8512;">X</span> <span style="color: #fb8512;">Y</span><span style="color: #6a9550;">]</span> -&gt; <span style="color: #6a9550;">[</span>if <span style="color: #baba36;">[</span>= <span style="color: #fb8512;">X</span> <span style="color: #6a7550;">0</span><span style="color: #baba36;">]</span> <span style="color: #baba36;">[</span>if <span style="color: #9b55c3;">[</span>= <span style="color: #fb8512;">Y</span> <span style="color: #6a7550;">0</span><span style="color: #9b55c3;">]</span> <span style="color: #6a7550;">1</span> <span style="color: #6a7550;">0</span><span style="color: #baba36;">]</span> <span style="color: #6a7550;">0</span><span style="color: #6a9550;">]</span><span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">(</span>nor <span style="color: #6a7550;">0</span> <span style="color: #6a7550;">1</span><span style="color: #bdbdb3;">)</span> \\ =&gt; <span style="color: #6a7550;">0</span>
+<span style="color: #bdbdb3;">(</span>nor <span style="color: #6a7550;">1</span> <span style="color: #6a7550;">1</span><span style="color: #bdbdb3;">)</span> \\ =&gt; <span style="color: #6a7550;">0</span>
+<span style="color: #bdbdb3;">(</span>nor <span style="color: #6a7550;">0</span> <span style="color: #6a7550;">0</span><span style="color: #bdbdb3;">)</span> \\ =&gt; <span style="color: #6a7550;">1</span>
+
+<span style="color: #bdbdb3;">(</span><span style="color: #bdbdb3; font-weight: bold;">macroexpand</span> <span style="color: #6a9550;">[</span> nor <span style="color: #6a7550;">0</span> <span style="color: #6a7550;">0</span> <span style="color: #6a9550;">]</span><span style="color: #bdbdb3;">)</span> \\ =&gt; <span style="color: #bdbdb3;">[</span>if <span style="color: #6a9550;">[</span>= <span style="color: #6a7550;">0</span> <span style="color: #6a7550;">0</span><span style="color: #6a9550;">]</span> <span style="color: #6a9550;">[</span>if <span style="color: #baba36;">[</span>= <span style="color: #6a7550;">0</span> <span style="color: #6a7550;">0</span><span style="color: #baba36;">]</span> <span style="color: #6a7550;">1</span> <span style="color: #6a7550;">0</span><span style="color: #6a9550;">]</span> <span style="color: #6a7550;">0</span><span style="color: #bdbdb3;">]</span>
+</pre>
+</div>
+
+<ul>
+<li class="fragment roll-in">Much easier than <a href="https://en.wikipedia.org/wiki/Quasi-quotation">quasiquoting</a>, don't you think?</li>
+<li class="fragment roll-in">This is the time when I'd ask a Haskell programmer about how this compares to
+<a href="https://en.wikipedia.org/wiki/Template_Haskell">Template Haskell</a></li>
+<li class="fragment roll-in"><p>
+While writing this, I found this <a href="http://mstill.io/blog/At-the-Court-of-the-Nasqueron-Dwellers.html">cool blog post</a> that explains a bit about why
+Shen doesn't need all this weird stuff.
+</p>
+<aside class="notes">
+<p>
++1 for the Algebraist reference
+</p>
+
+</aside></li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-orgheadline26">
+<h2 id="orgheadline26">Backtracking</h2>
+<div class="outline-text-2" id="text-orgheadline26">
+</div></section>
+<section id="slide-orgheadline23">
+<h4 id="orgheadline23">What's so special about Shen backtracking?</h4>
+<blockquote  class="fragment roll-in">
+<p>
+Backtracking is invoked in a Shen function f by using &lt;- in place of -&gt;. The
+effect is that the expression after the &lt;- is returned only if it does not
+evaluate to the failure object (fail). If (fail) is returned; then the next rule
+in f is applied.
+</p>
+</blockquote>
+
+<p class="fragment">
+In other words: try the other patterns too if this doesn't work.
+</p>
+
+<aside class="notes">
+<p>
+As flow control, it reads nicely. We can implement something like this using
+exception, but do we really want to?
+</p>
+
+</aside>
+</section>
+<section id="slide-orgheadline24">
+<h4 id="orgheadline24">Any real-life examples about how I'd use this?</h4>
+<ul class="fragment">
+<li>I really can't describe it better than showing some beautiful code from <a href="http://www.shenlanguage.org/tbos.html">The Book of Shen</a></li>
+
+</ul>
+
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">define</span> <span style="color: #9b55c3;">depth</span>
+  <span style="color: #fb8512;">State</span> <span style="color: #fb8512;">F</span> <span style="color: #fb8512;">G?</span> -&gt; <span style="color: #6a9550;">(</span>depth-help <span style="color: #baba36;">[</span><span style="color: #fb8512;">State</span><span style="color: #baba36;">]</span> <span style="color: #fb8512;">F</span> <span style="color: #fb8512;">G?</span><span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">define</span> <span style="color: #9b55c3;">depth-help</span>
+  <span style="color: #6a9550;">[</span><span style="color: #fb8512;">State</span> | _<span style="color: #6a9550;">]</span> _ <span style="color: #fb8512;">G?</span> -&gt; <span style="color: #fb8512;">State</span> where <span style="color: #6a9550;">(</span><span style="color: #fb8512;">G?</span> <span style="color: #fb8512;">State</span><span style="color: #6a9550;">)</span>
+  \* notice the &lt;- here! it backtracks after checking the expansions of the current state *\
+  <span style="color: #6a9550;">[</span><span style="color: #fb8512;">State</span> | _<span style="color: #6a9550;">]</span> <span style="color: #fb8512;">F</span> <span style="color: #fb8512;">G?</span> &lt;- <span style="color: #6a9550;">(</span>depth-help <span style="color: #baba36;">(</span><span style="color: #fb8512;">F</span> <span style="color: #fb8512;">State</span><span style="color: #baba36;">)</span> <span style="color: #fb8512;">F</span> <span style="color: #fb8512;">G?</span><span style="color: #6a9550;">)</span>
+  <span style="color: #6a9550;">[</span>_ | <span style="color: #fb8512;">States</span><span style="color: #6a9550;">]</span> <span style="color: #fb8512;">F</span> <span style="color: #fb8512;">G?</span> -&gt; <span style="color: #6a9550;">(</span>depth-help <span style="color: #fb8512;">States</span> <span style="color: #fb8512;">F</span> <span style="color: #fb8512;">G?</span><span style="color: #6a9550;">)</span>
+  _ _ _  -&gt; <span style="color: #6a9550;">(</span><span style="color: #bdbdb3; font-weight: bold;">fail</span><span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span>
+
+\* setting some auxiliary functions *\
+
+\* we want the list of combinations of <span style="color: #bdbdb3;">(</span><span style="color: #6a7550;">2</span>, <span style="color: #6a7550;">7</span>, <span style="color: #6a7550;">9</span><span style="color: #bdbdb3;">)</span> that sum to <span style="color: #6a7550;">27</span> *\
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">define</span> <span style="color: #9b55c3;">goal?</span>
+  <span style="color: #fb8512;">S</span> -&gt; <span style="color: #6a9550;">(</span>= <span style="color: #baba36;">(</span><span style="color: #bdbdb3; font-weight: bold;">sum</span> <span style="color: #fb8512;">S</span><span style="color: #baba36;">)</span> <span style="color: #6a7550;">27</span><span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span>
+
+\* state-expansion function *\
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">define</span> <span style="color: #9b55c3;">f</span>
+  <span style="color: #fb8512;">S</span> -&gt; <span style="color: #6a9550;">(</span>remove-if-no-good <span style="color: #baba36;">[</span><span style="color: #9b55c3;">[</span><span style="color: #6a7550;">2</span> | <span style="color: #fb8512;">S</span><span style="color: #9b55c3;">]</span> <span style="color: #9b55c3;">[</span><span style="color: #6a7550;">7</span> | <span style="color: #fb8512;">S</span><span style="color: #9b55c3;">]</span> <span style="color: #9b55c3;">[</span><span style="color: #6a7550;">9</span> | <span style="color: #fb8512;">S</span><span style="color: #9b55c3;">]</span><span style="color: #baba36;">]</span><span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">define</span> <span style="color: #9b55c3;">remove-if-no-good</span>
+  <span style="color: #fb8512;">Ss</span> -&gt; <span style="color: #6a9550;">(</span>remove-if <span style="color: #baba36;">(</span><span style="color: #bdbdb3; font-weight: bold;">/</span>. <span style="color: #fb8512;">X</span> <span style="color: #9b55c3;">(</span><span style="color: #bdbdb3; font-weight: bold;">&gt;</span> <span style="color: #6abd50;">(</span><span style="color: #bdbdb3; font-weight: bold;">sum</span> <span style="color: #fb8512;">X</span><span style="color: #6abd50;">)</span> <span style="color: #6a7550;">27</span><span style="color: #9b55c3;">)</span><span style="color: #baba36;">)</span> <span style="color: #fb8512;">Ss</span><span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">define</span> <span style="color: #9b55c3;">remove-if</span>
+  _ <span style="color: #6a9550;">[]</span> -&gt; <span style="color: #6a9550;">[]</span>
+  <span style="color: #fb8512;">F</span> <span style="color: #6a9550;">[</span><span style="color: #fb8512;">X</span> | <span style="color: #fb8512;">Y</span><span style="color: #6a9550;">]</span> -&gt; <span style="color: #6a9550;">(</span>remove-if <span style="color: #fb8512;">F</span> <span style="color: #fb8512;">Y</span><span style="color: #6a9550;">)</span> where <span style="color: #6a9550;">(</span><span style="color: #fb8512;">F</span> <span style="color: #fb8512;">X</span><span style="color: #6a9550;">)</span>
+  <span style="color: #fb8512;">F</span> <span style="color: #6a9550;">[</span><span style="color: #fb8512;">X</span> | <span style="color: #fb8512;">Y</span><span style="color: #6a9550;">]</span> -&gt; <span style="color: #6a9550;">[</span><span style="color: #fb8512;">X</span> | <span style="color: #baba36;">(</span>remove-if <span style="color: #fb8512;">F</span> <span style="color: #fb8512;">Y</span><span style="color: #baba36;">)</span><span style="color: #6a9550;">]</span><span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">(</span>depth <span style="color: #6a9550;">[]</span> <span style="color: #6a9550;">(</span><span style="color: #bdbdb3; font-weight: bold;">function</span> f<span style="color: #6a9550;">)</span> <span style="color: #6a9550;">(</span><span style="color: #bdbdb3; font-weight: bold;">function</span> goal?<span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span> \\ =&gt; <span style="color: #bdbdb3;">[</span><span style="color: #6a7550;">7</span> <span style="color: #6a7550;">2</span> <span style="color: #6a7550;">2</span> <span style="color: #6a7550;">2</span> <span style="color: #6a7550;">2</span> <span style="color: #6a7550;">2</span> <span style="color: #6a7550;">2</span> <span style="color: #6a7550;">2</span> <span style="color: #6a7550;">2</span> <span style="color: #6a7550;">2</span> <span style="color: #6a7550;">2</span><span style="color: #bdbdb3;">]</span>
+</pre>
+</div>
+</section>
+<section id="slide-orgheadline25">
+<h4 id="orgheadline25"></h4>
+<blockquote  class="fragment roll-in">
+<p>
+Certain beautiful programs, and this is one of them, are best left to contemplation.
+</p>
+</blockquote>
+
+</section>
+</section>
+<section>
+<section id="slide-orgheadline27">
+<h2 id="orgheadline27">Sponsored content</h2>
+
+<div class="figure">
+<p><a href="walls-are-melting.jpg" class="fragment"><img src="./walls-are-melting.jpg" alt="walls-are-melting.jpg" class="fragment" /></a>
+</p>
+</div>
+
+<p class="fragment">
+And you thought only acid was mind-bending?
+</p>
+
+</section>
+</section>
+<section>
+<section id="slide-orgheadline32">
+<h2 id="orgheadline32">Embedded compiler-compiler (Shen-YACC)</h2>
+<div class="outline-text-2" id="text-orgheadline32">
+</div></section>
+<section id="slide-orgheadline28">
+<h3 id="orgheadline28">Consider the following grammar</h3>
+<blockquote nil>
+<p>
+&lt;sent&gt; := &lt;np&gt; &lt;vp&gt;
+</p>
+
+<p>
+&lt;np&gt; := &lt;det&gt; &lt;n&gt; | &lt;name&gt;
+</p>
+
+<p>
+&lt;det&gt; := the | a
+</p>
+
+<p>
+&lt;n&gt; := cat | dog
+</p>
+
+<p>
+&lt;name&gt; := Bill | Ben | Ignacy
+</p>
+
+<p>
+&lt;vp&gt; := &lt;vtrans&gt; &lt;np&gt;
+</p>
+
+<p>
+&lt;vtrans&gt; := likes | chases
+</p>
+</blockquote>
+
+</section>
+<section id="slide-orgheadline29">
+<h3 id="orgheadline29">In Shen, it'd be represented thus</h3>
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">defcc</span> <span style="color: #9b55c3;">&lt;sent&gt;</span>
+  &lt;np&gt; &lt;vp&gt;;<span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">defcc</span> <span style="color: #9b55c3;">&lt;det&gt;</span>
+  the; a;<span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">defcc</span> <span style="color: #9b55c3;">&lt;np&gt;</span>
+  &lt;det&gt; &lt;n&gt;;
+  &lt;name&gt;;<span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">defcc</span> <span style="color: #9b55c3;">&lt;n&gt;</span>
+  cat; dog;<span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">defcc</span> <span style="color: #9b55c3;">&lt;name&gt;</span>
+  bill; ben; ignacy;<span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">defcc</span> <span style="color: #9b55c3;">&lt;vp&gt;</span>
+  &lt;vtrans&gt; &lt;np&gt;;<span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">defcc</span> <span style="color: #9b55c3;">&lt;vtrans&gt;</span>
+  likes; chases;<span style="color: #bdbdb3;">)</span>
+</pre>
+</div>
+
+<aside class="notes">
+<p>
+Pretty straightforward, no? It maps so well to the grammar it's not even funny.
+One could very easily generate this code from the grammar definition.
+</p>
+
+</aside>
+
+<p class="fragment">
+And the result:
+</p>
+
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #bdbdb3;">(</span><span style="color: #bdbdb3; font-weight: bold;">compile</span> <span style="color: #6a9550;">(</span><span style="color: #bdbdb3; font-weight: bold;">function</span> &lt;sent&gt;<span style="color: #6a9550;">)</span> <span style="color: #6a9550;">[</span>the cat likes the dog<span style="color: #6a9550;">]</span><span style="color: #bdbdb3;">)</span> \\ =&gt; <span style="color: #bdbdb3;">[</span>the cat likes the dog<span style="color: #bdbdb3;">]</span>
+
+\* there's no 'canary' in the &lt;n&gt; rule, so this won't parse *\
+<span style="color: #bdbdb3;">(</span><span style="color: #bdbdb3; font-weight: bold;">compile</span> <span style="color: #6a9550;">(</span><span style="color: #bdbdb3; font-weight: bold;">function</span> &lt;sent&gt;<span style="color: #6a9550;">)[</span>the cat likes the canary<span style="color: #6a9550;">]</span><span style="color: #bdbdb3;">)</span> \\ =&gt; parse error
+</pre>
+</div>
+
+<p class="fragment">
+No need to write your own parser; in Shen, it's a built-in command.
+</p>
+
+</section>
+<section id="slide-orgheadline30">
+<h3 id="orgheadline30">Configurable semantic actions</h3>
+<blockquote  class="fragment roll-in">
+<p>
+Semantic actions are attached to grammar rules by following each rule by a :=.
+</p>
+</blockquote>
+
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">defcc</span> <span style="color: #9b55c3;">&lt;as&gt;</span>
+  a &lt;as&gt; := <span style="color: #6a9550;">[</span>b | &lt;as&gt;<span style="color: #6a9550;">]</span>;
+  a := <span style="color: #6a9550;">[</span>b<span style="color: #6a9550;">]</span>;<span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">(</span><span style="color: #bdbdb3; font-weight: bold;">compile</span> &lt;as&gt; <span style="color: #6a9550;">[</span>a a a a a<span style="color: #6a9550;">]</span><span style="color: #bdbdb3;">)</span> \\ =&gt; <span style="color: #bdbdb3;">[</span>b b b b b<span style="color: #bdbdb3;">]</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-orgheadline31">
+<h3 id="orgheadline31">Function application in cc definitions</h3>
+<p>
+Round brackets signify function applications and square ones form lists.
+</p>
+
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">defcc</span> <span style="color: #9b55c3;">&lt;sent&gt;</span>
+         &lt;np&gt; &lt;vp&gt; := <span style="color: #6a9550;">(</span>question &lt;np&gt; &lt;vp&gt;<span style="color: #6a9550;">)</span>;<span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">define</span> <span style="color: #9b55c3;">question</span>
+  <span style="color: #fb8512;">NP</span> <span style="color: #fb8512;">VP</span> -&gt; <span style="color: #6a9550;">(</span><span style="color: #bdbdb3; font-weight: bold;">append</span> <span style="color: #baba36;">[</span><span style="color: #9b55c3;">(</span>protect <span style="color: #fb8512;">Is</span><span style="color: #9b55c3;">)</span> it true that<span style="color: #baba36;">]</span> <span style="color: #fb8512;">NP</span> <span style="color: #fb8512;">VP</span> <span style="color: #baba36;">[</span>?<span style="color: #baba36;">]</span><span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span>
+
+\* open question *\
+<span style="color: #bdbdb3;">(</span><span style="color: #bdbdb3; font-weight: bold;">compile</span> &lt;sent&gt; <span style="color: #6a9550;">[</span>the cat chases ignacy<span style="color: #6a9550;">]</span><span style="color: #bdbdb3;">)</span> \\ =&gt; <span style="color: #bdbdb3;">[</span><span style="color: #fb8512;">Is</span> it true that the cat chases ignacy ?<span style="color: #bdbdb3;">]</span>
+</pre>
+</div>
+
+<p class="fragment">
+We can define the semantic actions we want to execute inside the language.
+</p>
+
+</section>
+</section>
+<section>
+<section id="slide-orgheadline34">
+<h2 id="orgheadline34">Embedded Prolog</h2>
+<blockquote nil>
+<p>
+Shen has a Prolog notation consistent with the rest of Shen which uses defprolog.
+</p>
+</blockquote>
+
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">defprolog</span> <span style="color: #9b55c3;">man</span>
+  socrates &lt;--;<span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">defprolog</span> <span style="color: #9b55c3;">mortal</span>
+  <span style="color: #fb8512;">X</span> &lt;-- <span style="color: #6a9550;">(</span>man <span style="color: #fb8512;">X</span><span style="color: #6a9550;">)</span>;<span style="color: #bdbdb3;">)</span>
+
+<span style="color: #bdbdb3;">(</span>prolog? <span style="color: #6a9550;">(</span>mortal socrates<span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span> \\ =&gt; true
+</pre>
+</div>
+
+
+<div class="figure">
+<p><a href="Socrates-Meme-Nothing.png" class="fragment"><img src="./Socrates-Meme-Nothing.png" alt="Socrates-Meme-Nothing.png" class="fragment" /></a>
+</p>
+</div>
+
+</section>
+<section id="slide-orgheadline33">
+<h3 id="orgheadline33">Prolog functions in Shen Prolog</h3>
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">defprolog</span> <span style="color: #9b55c3;">member</span>
+  <span style="color: #fb8512;">X</span> <span style="color: #6a9550;">[</span><span style="color: #fb8512;">X</span> | _<span style="color: #6a9550;">]</span> &lt;--;
+  <span style="color: #fb8512;">X</span> <span style="color: #6a9550;">[</span>_ | <span style="color: #fb8512;">Y</span><span style="color: #6a9550;">]</span> &lt;-- <span style="color: #6a9550;">(</span>member <span style="color: #fb8512;">X</span> <span style="color: #fb8512;">Y</span><span style="color: #6a9550;">)</span>;<span style="color: #bdbdb3;">)</span> \\ =&gt; member
+
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">defprolog</span> <span style="color: #9b55c3;">rev</span>
+  <span style="color: #6a9550;">[]</span> <span style="color: #6a9550;">[]</span> &lt;--;
+  <span style="color: #6a9550;">[</span><span style="color: #fb8512;">X</span> | <span style="color: #fb8512;">Y</span><span style="color: #6a9550;">]</span> <span style="color: #fb8512;">Z</span> &lt;-- <span style="color: #6a9550;">(</span>rev <span style="color: #fb8512;">Y</span> <span style="color: #fb8512;">W</span><span style="color: #6a9550;">)</span> <span style="color: #6a9550;">(</span>conc <span style="color: #fb8512;">W</span> <span style="color: #baba36;">[</span><span style="color: #fb8512;">X</span><span style="color: #baba36;">]</span> <span style="color: #fb8512;">Z</span><span style="color: #6a9550;">)</span>;<span style="color: #bdbdb3;">)</span> \\ =&gt; rev
+
+<span style="color: #bdbdb3;">(</span><span style="color: #7d7c61; font-weight: bold;">defprolog</span> <span style="color: #9b55c3;">conc</span>
+  <span style="color: #6a9550;">[]</span> <span style="color: #fb8512;">X</span> <span style="color: #fb8512;">X</span> &lt;--;
+  <span style="color: #6a9550;">[</span><span style="color: #fb8512;">X</span> | <span style="color: #fb8512;">Y</span><span style="color: #6a9550;">]</span> <span style="color: #fb8512;">Z</span> <span style="color: #6a9550;">[</span><span style="color: #fb8512;">X</span> | <span style="color: #fb8512;">W</span><span style="color: #6a9550;">]</span> &lt;-- <span style="color: #6a9550;">(</span>conc <span style="color: #fb8512;">Y</span> <span style="color: #fb8512;">Z</span> <span style="color: #fb8512;">W</span><span style="color: #6a9550;">)</span>;<span style="color: #bdbdb3;">)</span> \\ =&gt; conc
+
+<span style="color: #bdbdb3;">(</span>prolog? <span style="color: #6a9550;">(</span>member <span style="color: #6a7550;">1</span> <span style="color: #baba36;">[</span><span style="color: #6a7550;">1</span> <span style="color: #6a7550;">2</span><span style="color: #baba36;">]</span><span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span> \\ =&gt; true
+
+<span style="color: #bdbdb3;">(</span>prolog? <span style="color: #6a9550;">(</span>member <span style="color: #6a7550;">0</span> <span style="color: #baba36;">[</span><span style="color: #6a7550;">1</span> <span style="color: #6a7550;">2</span><span style="color: #baba36;">]</span><span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span> \\ =&gt; false
+
+<span style="color: #bdbdb3;">(</span>prolog? <span style="color: #6a9550;">(</span>member <span style="color: #fb8512;">X</span> <span style="color: #baba36;">[</span><span style="color: #6a7550;">1</span> <span style="color: #6a7550;">2</span><span style="color: #baba36;">]</span><span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span> \\ =&gt; true
+
+<span style="color: #bdbdb3;">(</span>prolog? <span style="color: #6a9550;">(</span>member <span style="color: #fb8512;">X</span> <span style="color: #baba36;">[</span><span style="color: #6a7550;">1</span> <span style="color: #6a7550;">2</span><span style="color: #baba36;">]</span><span style="color: #6a9550;">)</span> <span style="color: #6a9550;">(</span><span style="color: #bdbdb3; font-weight: bold;">return</span> <span style="color: #fb8512;">X</span><span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span> \\ =&gt; <span style="color: #6a7550;">1</span>
+
+<span style="color: #bdbdb3;">(</span>prolog? <span style="color: #6a9550;">(</span>rev <span style="color: #baba36;">[</span><span style="color: #6a7550;">1</span> <span style="color: #6a7550;">2</span><span style="color: #baba36;">]</span> <span style="color: #fb8512;">X</span><span style="color: #6a9550;">)</span> <span style="color: #6a9550;">(</span><span style="color: #bdbdb3; font-weight: bold;">return</span> <span style="color: #fb8512;">X</span><span style="color: #6a9550;">)</span><span style="color: #bdbdb3;">)</span> \\ =&gt; <span style="color: #bdbdb3;">[</span><span style="color: #6a7550;">2</span> <span style="color: #6a7550;">1</span><span style="color: #bdbdb3;">]</span>
+</pre>
+</div>
+
+</section>
+</section>
+<section>
+<section id="slide-orgheadline35">
+<h2 id="orgheadline35"></h2>
+
+<div class="figure">
+<p><a href="wait-theres-more.jpg"><img src="./wait-theres-more.jpg" alt="wait-theres-more.jpg" /></a>
+</p>
+</div>
+</section>
+</section>
+<section>
+<section id="slide-orgheadline37">
+<h2 id="orgheadline37">Really?</h2>
+<ul>
+<li class="fragment roll-in">Multiple implementations</li>
+<li class="fragment roll-in"><a href="http://www.shenlanguage.org/learn-shen/native.html">Native calls</a></li>
+<li class="fragment roll-in">A <a href="http://www.shenlanguage.org/learn-shen/packages.html">package system</a> (namespaces)</li>
+
+</ul>
+
+</section>
+<section id="slide-orgheadline36">
+<h3 id="orgheadline36">In the profe$$ional version</h3>
+<ul>
+<li class="fragment roll-in">multiple debugs of the kernel</li>
+<li class="fragment roll-in">a simplified and improved interface to Common Lisp</li>
+<li class="fragment roll-in">pretty printer</li>
+<li class="fragment roll-in">an <a href="http://shenlanguage.org/professional.html#Fast_Compiler">optimised compiler</a> that can deliver up to 2X the performance of the OS version</li>
+<li class="fragment roll-in">non-communicating parallelism</li>
+<li class="fragment roll-in">communicating parallelism (full <a href="http://shenlanguage.org/professional.html#Concurrency">concurrency</a>)</li>
+<li class="fragment roll-in"><a href="http://shenlanguage.org/professional.html#Knowledge_Engine">a high performance first-order knowledge engine</a></li>
+<li class="fragment roll-in"><a href="http://shenlanguage.org/professional.html#HTML_Generation">HTML generation</a> (templates rendered with SML - Shen Markup Language)</li>
+<li class="fragment roll-in">direct email support</li>
+
+</ul>
+
+</section>
+</section>
+<section>
+<section id="slide-orgheadline39">
+<h2 id="orgheadline39">Resources</h2>
+<ul>
+<li class="fragment roll-in"><a href="http://shenlanguage.org/professional.html#Fast_Compiler">Shen website</a></li>
+<li class="fragment roll-in">Online <a href="http://gravicappa.github.io/shen-js/shen.html#.doc/welcome.html">Shen REPL</a> (Shen/JS-based)</li>
+<li class="fragment roll-in"><p>
+The <a href="http://www.amazon.co.uk/Book-Shen-Third-Mark-Tarver/dp/1784562130/ref=sr_1_2?s=books&amp;ie=UTF8&amp;qid=1459204767&amp;sr=1-2">Book of Shen</a>
+</p>
+<aside class="notes">
+<p>
+Personal note: I've learned a lot since I started reading it. It reads like a
+modern SICP. Heavily recommended.
+</p>
+
+</aside></li>
+<li class="fragment roll-in">Videos: "<a href="https://www.youtube.com/watch?v=lMcRBdSdO_U">Shen: A Sufficiently Advanced Lisp</a>" and "<a href="https://www.infoq.com/presentations/Enumerable-Java-Shen-Clojure">Clever, Classless and Free</a>"</li>
+
+</ul>
+
+</section>
+<section id="slide-orgheadline38">
+<h3 id="orgheadline38">If you're feeling adventurous, you can dive in the theory for Shen in <a href="http://www.amazon.co.uk/Logic-Proof-Computation-Mark-Tarver/dp/1784561274/ref=sr_1_1?s=books&amp;ie=UTF8&amp;qid=1459204767&amp;sr=1-1">Logic, Proof and Computation</a></h3>
+<blockquote  class="fragment roll-in">
+<p>
+Beginning with a review of formal languages and their syntax and semantics,
+Logic, Proof and Computation conducts a computer assisted course in formal
+reasoning and the relevance of logic to mathematical proof, information
+processing and philosophy. Topics covered include formal grammars, semantics
+of formal languages, sequent systems, truth-tables, propositional and first
+order logic, identity, proof heuristics, regimentation, set theory, databases,
+automated deduction, proof by induction, Turing machines, undecidability and a
+computer illustration of the reasoning underpinning Godel's incompleteness
+proof. LPC is designed as a multidisciplinary reader for students in
+computing, philosophy and mathematics.
+</p>
+</blockquote>
+
+<p class="fragment">
+(Can't say the author is not ambitious)
+</p>
+</section>
+</section>
+<section>
+<section id="slide-orgheadline40">
+<h2 id="orgheadline40">Questions?</h2>
+
+<div class="figure">
+<p><a href="shen-logo.png"><img src="./shen-logo.png" alt="shen-logo.png" /></a>
+</p>
+</div>
+</section>
+</section>
+</div>
+</div>
+<script src="file:///home/dancluna/bin/reveal.js-3.3.0/lib/js/head.min.js"></script>
+<script src="file:///home/dancluna/bin/reveal.js-3.3.0/js/reveal.js"></script>
+
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: true,
+center: true,
+slideNumber: 'c',
+rollingLinks: true,
+keyboard: true,
+overview: true,
+width: 1200,
+height: 800,
+margin: 0.00,
+minScale: 0.10,
+maxScale: 1.00,
+
+theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+transition: Reveal.getQueryHash().transition || 'none', // default/cube/page/concave/zoom/linear/fade/none
+transitionSpeed: 'default',
+multiplex: {
+    secret: '', // null if client
+    id: '', // id, obtained from socket.io server
+    url: '' // Location of socket.io server
+},
+
+// Optional libraries used to extend on reveal.js
+dependencies: [
+ { src: 'file:///home/dancluna/bin/reveal.js-3.3.0/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+ { src: 'file:///home/dancluna/bin/reveal.js-3.3.0/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: 'file:///home/dancluna/bin/reveal.js-3.3.0/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: 'file:///home/dancluna/bin/reveal.js-3.3.0/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+ { src: 'file:///home/dancluna/bin/reveal.js-3.3.0/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }]
+});
+</script>
+</body>
+</html>

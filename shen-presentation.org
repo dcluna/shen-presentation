@@ -1,7 +1,7 @@
 #+OPTIONS: reveal_center:t reveal_progress:t reveal_history:t reveal_control:t
 #+OPTIONS: reveal_mathjax:t reveal_rolling_links:t reveal_keyboard:t reveal_overview:t num:nil
 #+OPTIONS: reveal_width:1200 reveal_height:800
-#+OPTIONS: toc:nil
+#+OPTIONS: toc:nil timestamp:nil author:nil
 #+REVEAL_MARGIN: 0.0
 #+REVEAL_MIN_SCALE: 0.1
 #+REVEAL_MAX_SCALE: 1.0
@@ -11,7 +11,7 @@
 #+REVEAL_DEFAULT_FRAG_STYLE: roll-in
 #+REVEAL_ROOT: file:///home/dancluna/bin/reveal.js-3.3.0
 
-#+TITLE: Shen - Lisp and Haskell together
+#+TITLE: Shen - Type-safe logic-functional programming
 * Language features
 #+ATTR_REVEAL: :frag (t)
 - It's a [[https://en.wikipedia.org/wiki/Common_Lisp#The_function_namespace][Lisp-2]]
@@ -99,6 +99,46 @@ The basic datatypes and types of Shen are:
 #+ATTR_REVEAL: :frag t
 (Yes, Shen's gory details show here. Its default implementation is Common
 Lisp-based, and that's why you see these beautiful lambdas and [[http://www.catb.org/jargon/html/G/gensym.html][gensyms]])
+** custom data types
+#+ATTR_REVEAL: :frag t
+#+BEGIN_SRC shen
+  (datatype rank
+
+           if (element? X [ace 2 3 4 5 6 7 8 9 10 jack queen king])
+           ________________________________________________________
+           X : rank;)
+
+  (datatype suit
+
+          if (element? Suit [spades hearts diamonds clubs])
+          ________________________________________________
+          Suit : suit;)
+
+  (datatype card
+
+    Rank : rank; Suit : suit;
+    _________________________
+    [Rank Suit] : card;
+
+    Rank : rank, Suit : suit >> P;
+    _________________________________
+    [Rank Suit] : card >> P;)
+
+  \* can also be defined with the short form: *\
+  (datatype card
+
+           Rank : rank; Suit : suit;
+           =========================
+           [Rank Suit] : card;)
+
+  (tc +)
+
+  [5 spades] \\ => [5 spades] : card
+
+  [king hearts] \\ => [king hearts] : (list symbol)
+
+  [king hearts] : card \\ => [king hearts] : card
+#+END_SRC
 ** Further details
 #+ATTR_REVEAL: :frag (t)
 - Shen's type system is based on the [[https://en.wikipedia.org/wiki/Sequent_calculus][sequent calculus]].
@@ -253,6 +293,11 @@ in f is applied.
 
 #+ATTR_REVEAL: :frag t
 In other words: try the other patterns too if this doesn't work.
+
+#+BEGIN_NOTES
+As flow control, it reads nicely. We can implement something like this using
+exception, but do we really want to?
+#+END_NOTES
 *** Any real-life examples about how I'd use this?
 #+ATTR_REVEAL: :frag t
 - I really can't describe it better than showing some beautiful code from [[http://www.shenlanguage.org/tbos.html][The Book of Shen]]
