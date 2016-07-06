@@ -15,14 +15,19 @@
 * Language features
 #+ATTR_REVEAL: :frag (t)
 - It's a [[https://en.wikipedia.org/wiki/Common_Lisp#The_function_namespace][Lisp-2]]
+  #+BEGIN_NOTES
+  Fancy term to mean that function/variable namespaces are separate
+  #+END_NOTES
 - [[http://www.shenlanguage.org/learn-shen/functions/functions_pattern_matching.html][Pattern matching]]
 - Haskell-style type system
 - Actually, it's more powerful than Haskell's (Turing-complete type system)
-  #+BEGIN_NOTES
-  Aditya Siram, the guy who ported Shen to Emacs, said something like "this is
-  Lisp, not Haskell. If you want to launch nukes while compiling, you're free to
-  do so!"
-  #+END_NOTES
+  #+ATTR_REVEAL: :frag t
+  #+BEGIN_QUOTE
+  "this is Lisp, not Haskell. If you want to launch nukes while compiling, you're free to do so!"
+
+  -- Aditya Siram, Shen/Elisp creator
+  #+END_QUOTE
+
 - Macros
   #+BEGIN_NOTES
   Better than usual Lisp macros, because they take full advantage of the term
@@ -36,52 +41,70 @@
 - Embedded Prolog
 * Data types
 #+ATTR_REVEAL: :frag (t)
-The basic datatypes and types of Shen are
+The basic datatypes and types of Shen are:
 
-- symbols
-#+BEGIN_SRC shen
-a \\ => a : symbol
-#+END_SRC
-- strings
-#+BEGIN_SRC shen
-"hello world" \\ => "hello world" : string
- (@s "10" " green" " bottles") \\ => "10 green bottles" : string
-#+END_SRC
-- booleans
-#+BEGIN_SRC shen
-(= 4 5) \\ => false : boolean
-#+END_SRC
-- numbers
-#+BEGIN_SRC shen
-(* 2.3 2) \\ => 4.6 : number
-#+END_SRC
-- lists
-#+BEGIN_SRC shen
-[1 2 3] \\ => [1 2 3] : (list number)
-#+END_SRC
-- tuples
-#+BEGIN_SRC shen
-(@p 1 2 a) \\ => (@p 1 (@p 2 a)) : (number * (number * symbol))
-#+END_SRC
-- vectors
-#+BEGIN_SRC shen
-(@v 1 2 3 <>) \\ => <1 2 3> : (vector number)
-#+END_SRC
-- [[https://en.wikipedia.org/wiki/Lazy_evaluation][lazy objects]]
-#+BEGIN_SRC shen
-(set thunk (freeze (* 7 8))) \\ => #<FUNCTION :LAMBDA NIL (multiply 7 8)> : (lazy number)
-(value thunk) \\ => #<FUNCTION :LAMBDA NIL (multiply 7 8)> : (lazy number)
-(thaw (value thunk)) \\ => 56
-#+END_SRC
-- abstractions (AKA [[https://en.wikipedia.org/wiki/Currying][curried functions]])
-#+BEGIN_SRC shen
-  (* 7) \\ => #<FUNCTION :LAMBDA (#:Y18379) (multiply #:Y18378 #:Y18379)> : (number --> number)
-#+END_SRC
-
-- Shen's type system is based on the [[https://en.wikipedia.org/wiki/Sequent_calculus][sequent calculus]]. You can find a good
-  primer [[http://logitext.mit.edu/logitext.fcgi/tutorial][here]].
-* Pattern matching
 #+ATTR_REVEAL: :frag (t)
+** symbols
+#+ATTR_REVEAL: :frag t
+  #+BEGIN_SRC shen
+  a \\ => a : symbol
+  #+END_SRC
+** strings
+#+ATTR_REVEAL: :frag t
+  #+BEGIN_SRC shen
+  "hello world" \\ => "hello world" : string
+  (@s "10" " green" " bottles") \\ => "10 green bottles" : string
+  #+END_SRC
+** booleans
+#+ATTR_REVEAL: :frag t
+  #+BEGIN_SRC shen
+  (= 4 5) \\ => false : boolean
+  #+END_SRC
+** numbers
+#+ATTR_REVEAL: :frag t
+  #+BEGIN_SRC shen
+  (* 2.3 2) \\ => 4.6 : number
+  #+END_SRC
+** lists
+#+ATTR_REVEAL: :frag t
+  #+BEGIN_SRC shen
+  [1 2 3] \\ => [1 2 3] : (list number)
+  #+END_SRC
+** tuples
+#+ATTR_REVEAL: :frag t
+  #+BEGIN_SRC shen
+  (@p 1 2 a) \\ => (@p 1 (@p 2 a)) : (number * (number * symbol))
+  #+END_SRC
+** vectors
+#+ATTR_REVEAL: :frag t
+  #+BEGIN_SRC shen
+  (@v 1 2 3 <>) \\ => <1 2 3> : (vector number)
+  #+END_SRC
+** [[https://en.wikipedia.org/wiki/Lazy_evaluation][lazy objects]]
+#+ATTR_REVEAL: :frag t
+  #+BEGIN_SRC shen
+  (set thunk (freeze (* 7 8))) \\ => #<FUNCTION :LAMBDA NIL (multiply 7 8)> : (lazy number)
+  (value thunk) \\ => #<FUNCTION :LAMBDA NIL (multiply 7 8)> : (lazy number)
+  (thaw (value thunk)) \\ => 56
+  #+END_SRC
+  #+BEGIN_NOTES
+  Streams, promises, futures and the like come from this. Easy-peasy.
+  #+END_NOTES
+** abstractions (AKA [[https://en.wikipedia.org/wiki/Currying][curried functions]])
+#+ATTR_REVEAL: :frag t
+  #+BEGIN_SRC shen
+  (* 7) \\ => #<FUNCTION :LAMBDA (#:Y18379) (multiply #:Y18378 #:Y18379)> : (number --> number)
+  #+END_SRC
+
+#+ATTR_REVEAL: :frag t
+(Yes, Shen's gory details show here. Its default implementation is Common
+Lisp-based, and that's why you see these beautiful lambdas and [[http://www.catb.org/jargon/html/G/gensym.html][gensyms]])
+** Further details
+#+ATTR_REVEAL: :frag (t)
+- Shen's type system is based on the [[https://en.wikipedia.org/wiki/Sequent_calculus][sequent calculus]].
+- You can find a good primer on it [[http://logitext.mit.edu/logitext.fcgi/tutorial][here]].
+* Pattern matching
+#+ATTR_REVEAL: :frag t
 #+BEGIN_SRC shen
 (define butlast
   [] -> []
@@ -89,6 +112,7 @@ a \\ => a : symbol
   [X | Y] -> [X | (butlast Y)])
 #+END_SRC
 
+#+ATTR_REVEAL: :frag t
 #+BEGIN_SRC shen
 (define tuple->list
        \\ recurse through a tuple converting into a list 
@@ -97,6 +121,12 @@ a \\ => a : symbol
 
 (tuple->list (@p 1 2 3)) \\ => [1 2 3]
 #+END_SRC
+
+#+ATTR_REVEAL: :frag t
+Nothing surprising for Haskelliterati, other than the Lisp syntax.
+
+#+ATTR_REVEAL: :frag t
+But for Lispers, this saves a lot of [[http://clhs.lisp.se/Body/m_destru.htm][destructuring-bind]] code.
 * Functions
 ** Dynamic, everything-goes version
 #+ATTR_REVEAL: :frag (t)
@@ -115,20 +145,27 @@ a \\ => a : symbol
   (define fp/foldl
     {(A --> X --> A) --> A --> (list X) --> A}
     F Acc [] -> Acc
-    F Acc [X | Xs] -> (fp/foldl F (F Acc X) Xs))
+    F Acc [X | Xs] -> (fp/foldl F (F Acc X) Xs)) \\ => fp/foldl : ((A --> (X --> A)) --> (A --> ((list X) --> A)))
 #+END_SRC
 
-#+ATTR_REVEAL: :frag (t)
-- Notice the Haskell-ish flavor of the language.
+#+ATTR_REVEAL: :frag t
+Notice the Haskell-ish flavor of the language.
+
+#+ATTR_REVEAL: :frag t
+This WON'T compile without the type annotations!
 
 ** Lambdas!
-#+ATTR_REVEAL: :frag (t)
+#+ATTR_REVEAL: :frag t
 #+BEGIN_SRC shen
 ((/. X Y (+ X Y)) 1 2) \\ => 3
 #+END_SRC
 
-** [[https://en.wikipedia.org/wiki/Higher-order_function][HOF]]s
-#+ATTR_REVEAL: :frag (t)
+** [[https://en.wikipedia.org/wiki/Higher-order_function][Higher order functions]]
+#+ATTR_REVEAL: :frag t
+We'll go through an implementation of the [[https://en.wikipedia.org/wiki/Newton%2527s_method][Newton's method]] to see how it can be
+improved w/ HOFs.
+*** Hardcoded method
+#+ATTR_REVEAL: :frag t
 #+BEGIN_SRC shen
   (define newtons-method
     N -> (let Guess (/ N 2.0)
@@ -143,19 +180,6 @@ a \\ => a : symbol
                            (average Better_Guess (/ N Better_Guess))
                            Better_Guess))
 
-  \* higher-order converge function *\
-  (define converge
-    F X R -> (converge-help F (F X) X R))
-
-  (define converge-help
-    _ New Old R -> New where (R New Old)
-    F New _ R -> (converge-help F (F New) New R))
-
-  \* arbitrary newtons-method! *\
-  (define newtons-method-2
-    N -> (converge (/. M (average M (/ N M)))
-                   (/ N 2.0)
-                   (function close-enough?)))
 
   \* helper functions *\
   (define average
@@ -169,11 +193,34 @@ a \\ => a : symbol
     N -> N)
 #+END_SRC
 
+#+ATTR_REVEAL: :frag t
+Other than the pattern-matching stuff, this doesn't look like much of an improvement.
+*** Generic, arbitrary method
+#+ATTR_REVEAL: :frag t
+#+BEGIN_SRC shen
+  \* higher-order converge function *\
+  (define converge
+    F X R -> (converge-help F (F X) X R))
+
+  (define converge-help
+    _ New Old R -> New where (R New Old)
+    F New _ R -> (converge-help F (F New) New R))
+
+  \* arbitrary newtons-method! *\
+  (define newtons-method-2
+    N -> (converge (/. M (average M (/ N M)))
+                   (/ N 2.0)
+                   (function close-enough?)))
+#+END_SRC
+
+#+ATTR_REVEAL: :frag t
+[[file:i-like-it.jpg][file:./i-like-it.jpg]]
 * Macros
-#+ATTR_REVEAL: :frag (t)
+#+ATTR_REVEAL: :frag t
 - They allow the programmer to use all the term rewriting goodness in his/her
   own code
 
+#+ATTR_REVEAL: :frag t
 #+BEGIN_SRC shen
   (defmacro nor-macro
     [nor X Y] -> [if [= X 0] [if [= Y 0] 1 0] 0])
@@ -185,6 +232,7 @@ a \\ => a : symbol
   (macroexpand [ nor 0 0 ]) \\ => [if [= 0 0] [if [= 0 0] 1 0] 0]
 #+END_SRC
 
+#+ATTR_REVEAL: :frag (t)
 - Much easier than [[https://en.wikipedia.org/wiki/Quasi-quotation][quasiquoting]], don't you think?
 - This is the time when I'd ask a Haskell programmer about how this compares to
   [[https://en.wikipedia.org/wiki/Template_Haskell][Template Haskell]]
@@ -193,9 +241,9 @@ a \\ => a : symbol
   #+BEGIN_NOTES
   +1 for the Algebraist reference
   #+END_NOTES
-
 * Backtracking
-#+ATTR_REVEAL: :frag (t)
+*** What's so special about Shen backtracking?
+#+ATTR_REVEAL: :frag t
 #+BEGIN_QUOTE
 Backtracking is invoked in a Shen function f by using <- in place of ->. The
 effect is that the expression after the <- is returned only if it does not
@@ -203,14 +251,20 @@ evaluate to the failure object (fail). If (fail) is returned; then the next rule
 in f is applied.
 #+END_QUOTE
 
+#+ATTR_REVEAL: :frag t
+In other words: try the other patterns too if this doesn't work.
+*** Any real-life examples about how I'd use this?
+#+ATTR_REVEAL: :frag t
 - I really can't describe it better than showing some beautiful code from [[http://www.shenlanguage.org/tbos.html][The Book of Shen]]
 
+#+ATTR_REVEAL: :frag t
 #+BEGIN_SRC shen
   (define depth
     State F G? -> (depth-help [State] F G?))
 
   (define depth-help
     [State | _] _ G? -> State where (G? State)
+    \* notice the <- here! it backtracks after checking the expansions of the current state *\
     [State | _] F G? <- (depth-help (F State) F G?)
     [_ | States] F G? -> (depth-help States F G?)
     _ _ _  -> (fail))
@@ -235,9 +289,208 @@ in f is applied.
 
   (depth [] (function f) (function goal?)) \\ => [7 2 2 2 2 2 2 2 2 2 2]
 #+END_SRC
-
+*** 
+#+ATTR_REVEAL: :frag t
 #+BEGIN_QUOTE
 Certain beautiful programs, and this is one of them, are best left to contemplation.
 #+END_QUOTE
 
+* Sponsored content
+#+ATTR_REVEAL: :frag t
+[[file:walls-are-melting.jpg][file:./walls-are-melting.jpg]]
+
+#+ATTR_REVEAL: :frag t
+And you thought only acid was mind-bending?
+
 * Embedded compiler-compiler (Shen-YACC)
+** Consider the following grammar
+
+#+BEGIN_QUOTE
+<sent> := <np> <vp>
+
+<np> := <det> <n> | <name>
+
+<det> := the | a
+
+<n> := cat | dog
+
+<name> := Bill | Ben | Ignacy
+
+<vp> := <vtrans> <np>
+
+<vtrans> := likes | chases
+#+END_QUOTE
+
+** In Shen, it'd be represented thus
+#+ATTR_REVEAL: :frag t
+#+BEGIN_SRC shen
+  (defcc <sent>
+    <np> <vp>;)
+
+  (defcc <det>
+    the; a;)
+
+  (defcc <np>
+    <det> <n>;
+    <name>;)
+
+  (defcc <n>
+    cat; dog;)
+
+  (defcc <name>
+    bill; ben; ignacy;)
+
+  (defcc <vp>
+    <vtrans> <np>;)
+
+  (defcc <vtrans>
+    likes; chases;)
+#+END_SRC
+
+#+BEGIN_NOTES
+Pretty straightforward, no? It maps so well to the grammar it's not even funny.
+One could very easily generate this code from the grammar definition.
+#+END_NOTES
+
+#+ATTR_REVEAL: :frag t
+And the result:
+
+#+ATTR_REVEAL: :frag t
+#+BEGIN_SRC shen
+  (compile (function <sent>) [the cat likes the dog]) \\ => [the cat likes the dog]
+
+  \* there's no 'canary' in the <n> rule, so this won't parse *\
+  (compile (function <sent>)[the cat likes the canary]) \\ => parse error
+#+END_SRC
+
+#+ATTR_REVEAL: :frag t
+No need to write your own parser; in Shen, it's a built-in command.
+
+** Configurable semantic actions
+#+ATTR_REVEAL: :frag t
+#+BEGIN_QUOTE
+Semantic actions are attached to grammar rules by following each rule by a :=.
+#+END_QUOTE
+
+#+ATTR_REVEAL: :frag t
+#+BEGIN_SRC shen
+  (defcc <as>
+    a <as> := [b | <as>];
+    a := [b];)
+
+  (compile <as> [a a a a a]) \\ => [b b b b b]
+#+END_SRC
+
+** Function application in cc definitions
+Round brackets signify function applications and square ones form lists.
+
+#+ATTR_REVEAL: :frag t
+#+BEGIN_SRC shen
+  (defcc <sent>
+           <np> <vp> := (question <np> <vp>);)
+
+  (define question
+    NP VP -> (append [(protect Is) it true that] NP VP [?]))
+
+  \* open question *\
+  (compile <sent> [the cat chases ignacy]) \\ => [Is it true that the cat chases ignacy ?]
+#+END_SRC
+
+#+ATTR_REVEAL: :frag t
+We can define the semantic actions we want to execute inside the language.
+
+* Embedded Prolog
+#+BEGIN_QUOTE
+Shen has a Prolog notation consistent with the rest of Shen which uses defprolog.
+#+END_QUOTE
+
+#+ATTR_REVEAL: :frag t
+#+BEGIN_SRC shen
+  (defprolog man
+    socrates <--;)
+
+  (defprolog mortal
+    X <-- (man X);)
+
+  (prolog? (mortal socrates)) \\ => true
+#+END_SRC
+
+#+ATTR_REVEAL: :frag t
+[[file:Socrates-Meme-Nothing.png][file:./Socrates-Meme-Nothing.png]]
+
+** Prolog functions in Shen Prolog
+#+ATTR_REVEAL: :frag t
+#+BEGIN_SRC shen
+  (defprolog member
+    X [X | _] <--;
+    X [_ | Y] <-- (member X Y);) \\ => member
+
+  (defprolog rev
+    [] [] <--;
+    [X | Y] Z <-- (rev Y W) (conc W [X] Z);) \\ => rev
+
+  (defprolog conc
+    [] X X <--;
+    [X | Y] Z [X | W] <-- (conc Y Z W);) \\ => conc
+
+  (prolog? (member 1 [1 2])) \\ => true
+
+  (prolog? (member 0 [1 2])) \\ => false
+
+  (prolog? (member X [1 2])) \\ => true
+
+  (prolog? (member X [1 2]) (return X)) \\ => 1
+
+  (prolog? (rev [1 2] X) (return X)) \\ => [2 1]
+#+END_SRC
+
+* 
+[[file:wait-theres-more.jpg][file:./wait-theres-more.jpg]]
+* Really?
+#+ATTR_REVEAL: :frag (t)
+- Multiple implementations
+- [[http://www.shenlanguage.org/learn-shen/native.html][Native calls]]
+- A [[http://www.shenlanguage.org/learn-shen/packages.html][package system]] (namespaces)
+
+** In the profe$$ional version
+#+ATTR_REVEAL: :frag (t)
+- multiple debugs of the kernel
+- a simplified and improved interface to Common Lisp
+- pretty printer
+- an [[http://shenlanguage.org/professional.html#Fast_Compiler][optimised compiler]] that can deliver up to 2X the performance of the OS version
+- non-communicating parallelism
+- communicating parallelism (full [[http://shenlanguage.org/professional.html#Concurrency][concurrency]])
+- [[http://shenlanguage.org/professional.html#Knowledge_Engine][a high performance first-order knowledge engine]]
+- [[http://shenlanguage.org/professional.html#HTML_Generation][HTML generation]] (templates rendered with SML - Shen Markup Language)
+- direct email support
+
+* Resources 
+#+ATTR_REVEAL: :frag (t)
+- [[http://shenlanguage.org/professional.html#Fast_Compiler][Shen website]]
+- Online [[http://gravicappa.github.io/shen-js/shen.html#.doc/welcome.html][Shen REPL]] (Shen/JS-based)
+- The [[http://www.amazon.co.uk/Book-Shen-Third-Mark-Tarver/dp/1784562130/ref=sr_1_2?s=books&ie=UTF8&qid=1459204767&sr=1-2][Book of Shen]]
+  #+BEGIN_NOTES
+  Personal note: I've learned a lot since I started reading it. It reads like a
+  modern SICP. Heavily recommended.
+  #+END_NOTES
+- Videos: "[[https://www.youtube.com/watch?v=lMcRBdSdO_U][Shen: A Sufficiently Advanced Lisp]]" and "[[https://www.infoq.com/presentations/Enumerable-Java-Shen-Clojure][Clever, Classless and Free]]"
+
+** If you're feeling adventurous, you can dive in the theory for Shen in [[http://www.amazon.co.uk/Logic-Proof-Computation-Mark-Tarver/dp/1784561274/ref=sr_1_1?s=books&ie=UTF8&qid=1459204767&sr=1-1][Logic, Proof and Computation]]
+#+ATTR_REVEAL: :frag t
+#+BEGIN_QUOTE
+Beginning with a review of formal languages and their syntax and semantics,
+Logic, Proof and Computation conducts a computer assisted course in formal
+reasoning and the relevance of logic to mathematical proof, information
+processing and philosophy. Topics covered include formal grammars, semantics
+of formal languages, sequent systems, truth-tables, propositional and first
+order logic, identity, proof heuristics, regimentation, set theory, databases,
+automated deduction, proof by induction, Turing machines, undecidability and a
+computer illustration of the reasoning underpinning Godel's incompleteness
+proof. LPC is designed as a multidisciplinary reader for students in
+computing, philosophy and mathematics.
+#+END_QUOTE
+
+#+ATTR_REVEAL: :frag t
+(Can't say the author is not ambitious)
+* Questions?
+[[file:shen-logo.png][file:./shen-logo.png]]
